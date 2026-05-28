@@ -152,7 +152,7 @@ def create_preprocessor(
             [("num", num_pipeline, num_cols), ("cat", cat_pipeline, cat_cols)]
         )
 
-        logging.info(f"Preprocessor Created: {preprocessor}")
+        logging.info("Preprocessor Created")
 
         return preprocessor
 

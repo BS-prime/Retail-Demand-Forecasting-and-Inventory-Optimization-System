@@ -58,14 +58,14 @@ def model_evaluator(
     try:
         all_metrics: dict = {}
         best_model = None
-        best_mae = float(inf)
-        best_mse = float(inf)
-        best_r2 = float(inf)
+        best_mae = float("inf")
+        best_mse = float("inf")
+        best_r2 = float("-inf")
 
         for model in models:
             model_name = type(model).__name__
 
-            logging.info(f"Evaluation of {model_name} starting...")
+            logging.info(f"Evaluation of model: {model_name} starting...")
 
             y_pred = model.predict(preprocessed_X_test)
 

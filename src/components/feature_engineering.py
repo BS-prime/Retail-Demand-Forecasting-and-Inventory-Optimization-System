@@ -85,8 +85,30 @@ def calculate_sell_through_rate(dataframe: pd.DataFrame) -> pd.DataFrame:
         raise CustomException(e, sys)
 
 
+# =================================================================================
+# --- 4. Set Index to Date ---
+# =================================================================================
+
+
+def set_index_to_date(dataframe: pd.DataFrame) -> pd.DataFrame:
+    """
+    Helper to set the dataframe index to Date column.
+    """
+    try:
+        dataframe = dataframe.reset_index(drop=True)
+        dataframe = dataframe.set_index("Date")
+        dataframe = dataframe.sort_index()
+
+        logging.info(f"Set the dataframe index to Date column: {dataframe.index.name}")
+
+        return dataframe
+
+    except Exception as e:
+        raise CustomException(e, sys)
+
+
 # =================================================================================================
-# --- 4. Create final features ---
+# --- 5. Create final features ---
 # =================================================================================================
 
 
@@ -100,6 +122,7 @@ def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
         dataframe = create_time_feature(dataframe=dataframe)
         dataframe = calculate_discounted_price(dataframe=dataframe)
         dataframe = calculate_sell_through_rate(dataframe=dataframe)
+        dataframe = set_index_to_date(dataframe=dataframe)
 
         logging.info(f"Feature engineering completed: {DataFrame.shape}")
 

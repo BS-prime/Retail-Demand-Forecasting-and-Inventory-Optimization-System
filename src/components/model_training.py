@@ -32,9 +32,7 @@ def model_trainer(preprocessed_X_train, y_train):
 
         for model_config in config_file["models"].values():
             model_name = model_config["type"]
-            model = algo_map[model_name](
-                random_state=config_file["training"]["random_state"]
-            )
+            model = algo_map[model_name]()
 
             logging.info(f"Training model: {model_name}")
 

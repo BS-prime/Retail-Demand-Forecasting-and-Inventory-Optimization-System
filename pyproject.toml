@@ -1,7 +1,11 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
 [project]
 name = "retail-demand-forecasting-and-inventory-optimization-system"
 version = "0.1.0"
-description = "Add your description here"
+description = "Predict customer demand and optimize inventory to handle those demands"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -17,3 +21,10 @@ dependencies = [
     "shap>=0.51.0",
     "xgboost>=3.2.0",
 ]
+
+[pyproject.optional-dependencies]
+dev = ["pytest>=8.0.0"]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
