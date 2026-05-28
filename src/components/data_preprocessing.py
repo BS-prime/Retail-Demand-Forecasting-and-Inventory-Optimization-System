@@ -194,8 +194,8 @@ def data_transformation(
 
 
 def save_features_to_csv(
-    preprocessed_X_train: pd.DataFrame,
-    preprocessed_X_test: pd.DataFrame,
+    preprocessed_X_train,
+    preprocessed_X_test,
     y_train: pd.Series,
     y_test: pd.Series,
     config_data: dict = config_file,
@@ -245,6 +245,8 @@ def data_preprocessing(
     """
 
     try:
+        logging.info("Data preprocessing started.")
+
         X, y = input_output_split(dataframe)
 
         X_train, X_test, y_train, y_test = perform_train_test_split(X, y)
@@ -262,6 +264,8 @@ def data_preprocessing(
         )
 
         save_features_to_csv(preprocessed_X_train, preprocessed_X_test, y_train, y_test)
+
+        logging.info("Data preprocessing completed.")
 
         return preprocessor, preprocessed_X_train, preprocessed_X_test, y_train, y_test
 

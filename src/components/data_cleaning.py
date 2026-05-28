@@ -54,7 +54,7 @@ def set_index_to_date(dataframe: pd.DataFrame) -> pd.DataFrame:
 # =================================================================================
 
 
-def data_cleaning(dataframe: pd.DataFrame) -> pd.DataFrame:
+def data_cleaner(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Execute the data cleaning steps.
     """
