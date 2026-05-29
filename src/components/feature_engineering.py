@@ -2,9 +2,6 @@
 import sys
 from pathlib import Path
 
-from pandas import DataFrame
-from xgboost import data
-
 from src.logger import logging
 from src.exception import CustomException
 from src.config import load_config
@@ -124,7 +121,7 @@ def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
         dataframe = calculate_sell_through_rate(dataframe=dataframe)
         dataframe = set_index_to_date(dataframe=dataframe)
 
-        logging.info(f"Feature engineering completed: {DataFrame.shape}")
+        logging.info(f"Feature engineering completed: {dataframe.columns}")
 
         return dataframe
 

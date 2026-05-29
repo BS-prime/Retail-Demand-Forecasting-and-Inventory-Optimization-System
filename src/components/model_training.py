@@ -1,7 +1,7 @@
 # import modules
 import sys
 
-from sklearn.model_selection import GridSearchCV
+from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
 
 from src.logger import logging
 from src.exception import CustomException
@@ -36,10 +36,12 @@ def model_trainer(preprocessed_X_train, y_train):
 
             logging.info(f"Training model: {model_name}")
 
+            time_series_split = TimeSeriesSplit(n_splits=config_file["training"]["cv"], gap=1)
+
             grid = GridSearchCV(
                 model,
                 param_grid=model_config["params"],
-                cv=config_file["training"]["cv"],
+                cv=time_series_split,
                 verbose=config_file["training"]["verbose"],
                 scoring=config_file["training"]["scoring"],
             )

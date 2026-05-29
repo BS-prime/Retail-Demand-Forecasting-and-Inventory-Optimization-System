@@ -37,10 +37,7 @@ env/
 *.log
 
 # Project-generated outputs
-data/simulated/
-data/features/
 artifacts/models/
-artifacts/model_thresholds/
-reports/model_evaluation/
-reports/drift_monitoring/
-reports/shap/
+artifacts/explainability
+artifacts/metrics
+artifacts/features

@@ -40,7 +40,7 @@ def data_cleaner(dataframe: pd.DataFrame) -> pd.DataFrame:
     try:
         dataframe = refactor_date_feature(dataframe)
 
-        logging.info(f"Data cleaning completed: {dataframe.shape}")
+        logging.info(f"Data cleaning completed: {dataframe.shape}, columns: {dataframe.columns}")
 
         return dataframe
 

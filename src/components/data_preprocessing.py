@@ -20,7 +20,7 @@ config_file = load_config()
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
 # =================================================================================================
-# --- 1. Perform train test split ---
+# --- 1. Perform input output split ---
 # =================================================================================================
 
 
@@ -30,7 +30,7 @@ def input_output_split(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series
     train test split
     """
     try:
-        X = dataframe.drop(columns=["Demand", "Date"], errors="ignore")
+        X = dataframe.drop(columns=["Demand"], errors="ignore")
         y = dataframe["Demand"]
 
         logging.info(f"Input output split done: {X.shape}, {y.shape}")
