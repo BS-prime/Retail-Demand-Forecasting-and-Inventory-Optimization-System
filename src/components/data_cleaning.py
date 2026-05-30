@@ -17,6 +17,7 @@ def refactor_date_feature(dataframe: pd.DataFrame) -> pd.DataFrame:
     Change datatype of Date column
     """
     try:
+        dataframe = dataframe.copy()
         dataframe["Date"] = pd.to_datetime(dataframe["Date"])
 
         logging.info(f"Cleaned the dataframe: {dataframe.shape}")

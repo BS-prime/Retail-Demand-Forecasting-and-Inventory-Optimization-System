@@ -47,7 +47,7 @@ def save_evaluation_metrics(metrics_dict: dict) -> None:
 
 def model_evaluator(
     models: list,
-    preprocessed_X_test,
+    X_test,
     y_test: pd.Series,
 )-> object:
     """
@@ -63,11 +63,11 @@ def model_evaluator(
         best_r2 = float("-inf")
 
         for model in models:
-            model_name = type(model).__name__
+            model_name = type(model.named_steps["model"]).__name__ if hasattr(model, "named_steps") else type(model).__name__
 
             logging.info(f"Evaluation of model: {model_name} starting...")
 
-            y_pred = model.predict(preprocessed_X_test)
+            y_pred = model.predict(X_test)
 
             mae = round(mean_absolute_error(y_test, y_pred), 4)
             mse = round(mean_squared_error(y_test, y_pred), 4)
@@ -83,10 +83,13 @@ def model_evaluator(
 
             all_metrics[model_name] = metrics
 
-            if best_r2 < r2:
-                if best_mse > mse:
-                    if best_mae > mae:
-                        best_model = model
+            if r2 > best_r2 or (
+                r2 == best_r2 and (mse < best_mse or (mse == best_mse and mae < best_mae))
+            ):
+                best_model = model
+                best_mae = mae
+                best_mse = mse
+                best_r2 = r2
 
         save_evaluation_metrics(metrics_dict=all_metrics)
 

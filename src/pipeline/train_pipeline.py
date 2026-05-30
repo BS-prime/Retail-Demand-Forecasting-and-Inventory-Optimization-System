@@ -54,30 +54,48 @@ def run_training_pipeline():
         # -----------------------------------------------------------------------------------------
 
         logging.info("Starting Pipeline: Data Preprocessing")
-        preprocessor, preprocessed_X_train, preprocessed_X_test, y_train, y_test = data_preprocessing(df)
-        
-        # -----------------------------------------------------------------------------------------
-        # --- 5. Save the preprocessor ---
-        # -----------------------------------------------------------------------------------------
+        (
+            preprocessor,
+            preprocessed_X_train,
+            preprocessed_X_test,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+        ) = data_preprocessing(df)
 
-        logging.info("Starting Pipeline: Save preprocessor")
-        save_object(filepath=config_file["output"]["preprocessor_path"], obj=preprocessor)
-
-        logging.info(f"Preprocessor saved at: {config_file["output"]["preprocessor_path"]}")
-
         # -----------------------------------------------------------------------------------------
-        # --- 6. Model Training ---
+        # --- 5. Model Training ---
         # -----------------------------------------------------------------------------------------
 
         logging.info("Starting Pipeline: Model Training")
-        models = model_trainer(preprocessed_X_train=preprocessed_X_train, y_train=y_train)
+        models = model_trainer(X_train=X_train, y_train=y_train, preprocessor=preprocessor)
 
         # -----------------------------------------------------------------------------------------
-        # --- 7. Model Evaluation ---
+        # --- 6. Model Evaluation ---
         # -----------------------------------------------------------------------------------------
 
         logging.info("Starting Pipeline: Model Evaluation")
-        best_model = model_evaluator(models=models, preprocessed_X_test=preprocessed_X_test, y_test=y_test)
+        best_model = model_evaluator(models=models, X_test=X_test, y_test=y_test)
+        if best_model is None:
+            raise ValueError("Model evaluation did not select a best model.")
+
+        fitted_preprocessor = (
+            best_model.named_steps["preprocessor"]
+            if hasattr(best_model, "named_steps")
+            else preprocessor
+        )
+
+        # -----------------------------------------------------------------------------------------
+        # --- 7. Save the preprocessor ---
+        # -----------------------------------------------------------------------------------------
+
+        logging.info("Starting Pipeline: Save preprocessor")
+        save_object(filepath=config_file["output"]["preprocessor_path"], obj=fitted_preprocessor)
+
+        logging.info(
+            f"Preprocessor saved at: {config_file['output']['preprocessor_path']}"
+        )
 
         # -----------------------------------------------------------------------------------------
         # --- 8. Save the Model ---
@@ -86,17 +104,27 @@ def run_training_pipeline():
         logging.info("Starting Pipeline: Save Model")
         save_object(filepath=config_file["output"]["model_path"], obj=best_model)
 
-        logging.info(f"Model saved at: {config_file["output"]["model_path"]}")
+        logging.info(f"Model saved at: {config_file['output']['model_path']}")
 
         # -----------------------------------------------------------------------------------------
         # --- 9. Model Explainability ---
         # -----------------------------------------------------------------------------------------
 
         logging.info("Saving SHAP Summary Plot")
+        shap_model = (
+            best_model.named_steps["model"]
+            if hasattr(best_model, "named_steps")
+            else best_model
+        )
+        shap_X = (
+            fitted_preprocessor.transform(X_test)
+            if hasattr(best_model, "named_steps")
+            else preprocessed_X_test
+        )
         save_shap_summary_plot(
-            model=best_model,
-            X=preprocessed_X_test,
-            preprocessor=preprocessor,
+            model=shap_model,
+            X=shap_X,
+            preprocessor=fitted_preprocessor,
         )
     
     except Exception as e:

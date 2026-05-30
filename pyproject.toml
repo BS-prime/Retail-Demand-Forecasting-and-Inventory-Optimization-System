@@ -10,15 +10,18 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "dill>=0.4.1",
+    "fastapi>=0.136.3",
     "fastparquet>=2026.5.0",
     "ipykernel>=7.2.0",
     "matplotlib>=3.10.9",
     "numpy>=2.4.6",
     "pandas>=3.0.3",
+    "pydantic>=2.13.4",
     "pyyaml>=6.0.3",
     "scikit-learn>=1.8.0",
     "seaborn>=0.13.2",
     "shap>=0.51.0",
+    "uvicorn>=0.34.0",
     "xgboost>=3.2.0",
 ]
 

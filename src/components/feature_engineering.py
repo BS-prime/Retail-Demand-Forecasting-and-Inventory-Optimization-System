@@ -70,9 +70,10 @@ def calculate_sell_through_rate(dataframe: pd.DataFrame) -> pd.DataFrame:
     Helper to calculate the sell through rate feature.
     """
     try:
-        dataframe["SellThroughRate"] = (
-            dataframe["Units Sold"] / dataframe["Inventory Level"]
+        dataframe["SellThroughRate"] = dataframe["Units Sold"].div(
+            dataframe["Inventory Level"].where(dataframe["Inventory Level"] != 0)
         )
+        dataframe["SellThroughRate"] = dataframe["SellThroughRate"].fillna(0)
 
         logging.info(f"Create SellThroughRate feature: {dataframe.shape}")
 

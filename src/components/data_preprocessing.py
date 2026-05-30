@@ -19,6 +19,8 @@ config_file = load_config()
 # locate root
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
+LEAKAGE_COLUMNS = ["Units Sold", "Units Ordered", "SellThroughRate"]
+
 # =================================================================================================
 # --- 1. Perform input output split ---
 # =================================================================================================
@@ -30,10 +32,13 @@ def input_output_split(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series
     train test split
     """
     try:
-        X = dataframe.drop(columns=["Demand"], errors="ignore")
+        X = dataframe.drop(columns=["Demand", *LEAKAGE_COLUMNS], errors="ignore")
         y = dataframe["Demand"]
 
-        logging.info(f"Input output split done: {X.shape}, {y.shape}")
+        logging.info(
+            f"Input output split done: {X.shape}, {y.shape}. "
+            f"Dropped leakage columns: {LEAKAGE_COLUMNS}"
+        )
 
         return X, y
 
@@ -84,7 +89,7 @@ def datatype_based_feature_selection(
     Helper to select features based on datatype.
     """
     try:
-        num_cols = X_train.select_dtypes(include=["int64", "float64"]).columns.tolist()
+        num_cols = X_train.select_dtypes(include=["number", "bool"]).columns.tolist()
         cat_cols = X_train.select_dtypes(include=["object"]).columns.tolist()
 
         logging.info(
@@ -267,7 +272,15 @@ def data_preprocessing(
 
         logging.info("Data preprocessing completed.")
 
-        return preprocessor, preprocessed_X_train, preprocessed_X_test, y_train, y_test
+        return (
+            preprocessor,
+            preprocessed_X_train,
+            preprocessed_X_test,
+            X_train,
+            X_test,
+            y_train,
+            y_test,
+        )
 
     except Exception as e:
         raise CustomException(e, sys)

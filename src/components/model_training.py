@@ -1,7 +1,9 @@
 # import modules
 import sys
 
+from sklearn.base import clone
 from sklearn.model_selection import GridSearchCV, TimeSeriesSplit
+from sklearn.pipeline import Pipeline
 
 from src.logger import logging
 from src.exception import CustomException
@@ -12,7 +14,7 @@ from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
 from xgboost import XGBRegressor
 
 
-def model_trainer(preprocessed_X_train, y_train):
+def model_trainer(X_train, y_train, preprocessor):
     """
     Train multiple models and return in a list.
     """
@@ -32,21 +34,31 @@ def model_trainer(preprocessed_X_train, y_train):
 
         for model_config in config_file["models"].values():
             model_name = model_config["type"]
-            model = algo_map[model_name]()
+            model = Pipeline(
+                [
+                    ("preprocessor", clone(preprocessor)),
+                    ("model", algo_map[model_name]()),
+                ]
+            )
+            param_grid = {
+                f"model__{parameter}": values
+                for parameter, values in model_config["params"].items()
+            }
 
             logging.info(f"Training model: {model_name}")
-
+            
+            # implementing time series split for cross validation
             time_series_split = TimeSeriesSplit(n_splits=config_file["training"]["cv"], gap=1)
 
             grid = GridSearchCV(
                 model,
-                param_grid=model_config["params"],
+                param_grid=param_grid,
                 cv=time_series_split,
                 verbose=config_file["training"]["verbose"],
                 scoring=config_file["training"]["scoring"],
             )
 
-            grid.fit(preprocessed_X_train, y_train)
+            grid.fit(X_train, y_train)
 
             logging.info(f"{model_name} trained successfully")
 
@@ -54,7 +66,7 @@ def model_trainer(preprocessed_X_train, y_train):
 
             models.append(best_model)
 
-            logging.info(f"{model_name} appended to the list successfully.")
+            logging.info(f"{model_name} pipeline appended to the list successfully.")
 
         return models
 
