@@ -61,21 +61,19 @@ def calculate_discounted_price(dataframe: pd.DataFrame) -> pd.DataFrame:
 
 
 # =================================================================================================
-# --- 3. Create sell through rate feature ---
+# --- 3. Drop leakage columns ---
 # =================================================================================================
 
 
-def calculate_sell_through_rate(dataframe: pd.DataFrame) -> pd.DataFrame:
+def drop_leakage_columns(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
-    Helper to calculate the sell through rate feature.
+    Helper to drop leakage columns.
     """
     try:
-        dataframe["SellThroughRate"] = dataframe["Units Sold"].div(
-            dataframe["Inventory Level"].where(dataframe["Inventory Level"] != 0)
-        )
-        dataframe["SellThroughRate"] = dataframe["SellThroughRate"].fillna(0)
+        leakage_columns = ["Units Sold", "Units Ordered", "Inventory Level"]
+        dataframe = dataframe.drop(columns=leakage_columns, errors="ignore")
 
-        logging.info(f"Create SellThroughRate feature: {dataframe.shape}")
+        logging.info(f"Feature engineering completed: {dataframe.columns}")
 
         return dataframe
 
@@ -113,16 +111,17 @@ def set_index_to_date(dataframe: pd.DataFrame) -> pd.DataFrame:
 def feature_engineering(dataframe: pd.DataFrame) -> pd.DataFrame:
     """
     Combine all the helpers to perform feature engineering.
+    Includes dropping leakage columns that would not be available at prediction time.
     """
     try:
         logging.info("Commencing feature engineering...")
 
         dataframe = create_time_feature(dataframe=dataframe)
         dataframe = calculate_discounted_price(dataframe=dataframe)
-        dataframe = calculate_sell_through_rate(dataframe=dataframe)
+        dataframe = drop_leakage_columns(dataframe=dataframe)
         dataframe = set_index_to_date(dataframe=dataframe)
 
-        logging.info(f"Feature engineering completed: {dataframe.columns}")
+        logging.info("Feature engineering completed")
 
         return dataframe
 

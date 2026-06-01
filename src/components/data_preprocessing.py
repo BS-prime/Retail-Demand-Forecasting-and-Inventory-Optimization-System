@@ -19,8 +19,6 @@ config_file = load_config()
 # locate root
 ROOT_DIR = Path(__file__).resolve().parents[2]
 
-LEAKAGE_COLUMNS = ["Units Sold", "Units Ordered", "SellThroughRate"]
-
 # =================================================================================================
 # --- 1. Perform input output split ---
 # =================================================================================================
@@ -32,12 +30,12 @@ def input_output_split(dataframe: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series
     train test split
     """
     try:
-        X = dataframe.drop(columns=["Demand", *LEAKAGE_COLUMNS], errors="ignore")
+        X = dataframe.drop(columns=["Demand"], errors="ignore")
         y = dataframe["Demand"]
 
         logging.info(
             f"Input output split done: {X.shape}, {y.shape}. "
-            f"Dropped leakage columns: {LEAKAGE_COLUMNS}"
+            f"Leakage columns dropped in feature engineering"
         )
 
         return X, y
@@ -209,8 +207,14 @@ def save_features_to_csv(
     Helper to save transformed features to CSV files.
     """
     try:
-        train_arr = np.c_[preprocessed_X_train, np.array(y_train)]
-        test_arr = np.c_[preprocessed_X_test, np.array(y_test)]
+        # Convert sparse matrices to dense if needed
+        if hasattr(preprocessed_X_train, "toarray"):
+            preprocessed_X_train = preprocessed_X_train.toarray()
+        if hasattr(preprocessed_X_test, "toarray"):
+            preprocessed_X_test = preprocessed_X_test.toarray()
+
+        train_arr = np.c_[preprocessed_X_train, y_train.values.reshape(-1, 1)]
+        test_arr = np.c_[preprocessed_X_test, y_test.values.reshape(-1, 1)]
 
         logging.info(f"training features created: {train_arr.shape}")
         logging.info(f"testing features created: {test_arr.shape}")

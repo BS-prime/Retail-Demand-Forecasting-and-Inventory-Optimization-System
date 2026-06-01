@@ -45,7 +45,7 @@ def model_trainer(X_train, y_train, preprocessor):
                 for parameter, values in model_config["params"].items()
             }
 
-            logging.info(f"Training model: {model_name}")
+            logging.info(f"Training model: {model_name}, with features: {X_train.columns.tolist()}, and parameters: {param_grid}")
             
             # implementing time series split for cross validation
             time_series_split = TimeSeriesSplit(n_splits=config_file["training"]["cv"], gap=1)

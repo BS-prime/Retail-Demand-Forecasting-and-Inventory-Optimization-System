@@ -4,26 +4,13 @@ from fastapi import FastAPI, HTTPException
 
 from src.api.schemas import (
     BatchPredictionRequest,
-    OptimizationInput,
     PredictionRequest,
     PredictionResponse,
 )
 from src.exception import CustomException
-from src.pipeline.predict_pipeline import add_inventory_recommendations, predict_demand
-
+from src.pipeline.predict_pipeline import PredictPipeline
 
 app = FastAPI(title="Retail Demand Forecasting API", version="0.1.0")
-
-
-def make_prediction_response(row: dict[str, Any]) -> PredictionResponse:
-    return PredictionResponse(
-        predicted_demand=float(row["PredictedDemand"]),
-        daily_demand=to_optional_float(row.get("DailyDemand")),
-        annual_demand=to_optional_float(row.get("AnnualDemand")),
-        optimal_order_quantity=to_optional_float(row.get("OptimalOrderQuantity")),
-        reorder_point=to_optional_float(row.get("ReorderPoint")),
-        safety_stock=to_optional_float(row.get("SafetyStock")),
-    )
 
 
 def to_optional_float(value: Any) -> float | None:
@@ -32,32 +19,45 @@ def to_optional_float(value: Any) -> float | None:
     return float(value)
 
 
-def predict_rows(rows: list[dict], optimization: OptimizationInput | None = None):
-    result = predict_demand(rows)
+def make_prediction_response(row: dict[str, Any]) -> PredictionResponse:
+    return PredictionResponse(
+        predicted_demand=float(row["PredictedDemand"]),
+        daily_demand=to_optional_float(row.get("DailyDemand")),
+        annual_demand=to_optional_float(row.get("AnnualDemand"))
+        or float(row["PredictedDemand"]),
+        optimal_order_quantity=to_optional_float(row.get("OptimalOrderQuantity")),
+        reorder_point=to_optional_float(row.get("ReorderPoint")),
+        safety_stock=to_optional_float(row.get("SafetyStock")),
+    )
 
-    if optimization is not None:
-        result = add_inventory_recommendations(
-            predictions=result,
-            ordering_cost=optimization.ordering_cost,
-            holding_cost=optimization.holding_cost,
-            lead_time_days=optimization.lead_time_days,
-            safety_stock=optimization.safety_stock,
-        )
 
-    return result.to_dict(orient="records")
+def build_pipeline(
+    request: PredictionRequest | BatchPredictionRequest,
+) -> PredictPipeline:
+    optimization = request.optimization
+    if optimization is None:
+        return PredictPipeline()
+
+    return PredictPipeline(
+        ordering_cost=optimization.ordering_cost,
+        holding_cost=optimization.holding_cost,
+        lead_time_days=optimization.lead_time_days,
+        safety_stock=optimization.safety_stock,
+        enable_optimization=True,
+    )
 
 
 @app.get("/health")
 def health_check() -> dict[str, str]:
-    return {"status": "ok"}
+    return {"status": "Retail Demand Forecasting API is up and running"}
 
 
 @app.post("/predict", response_model=PredictionResponse)
-def predict(request: PredictionRequest) -> PredictionResponse:
+async def predict(request: PredictionRequest) -> PredictionResponse:
     try:
-        rows = predict_rows(
-            [request.data.to_model_input()],
-            optimization=request.optimization,
+        pipeline = build_pipeline(request)
+        rows = pipeline.predict([request.data.to_model_input()]).to_dict(
+            orient="records"
         )
         return make_prediction_response(rows[0])
 
@@ -66,10 +66,11 @@ def predict(request: PredictionRequest) -> PredictionResponse:
 
 
 @app.post("/predict/batch", response_model=list[PredictionResponse])
-def predict_batch(request: BatchPredictionRequest) -> list[PredictionResponse]:
+async def predict_batch(request: BatchPredictionRequest) -> list[PredictionResponse]:
     try:
+        pipeline = build_pipeline(request)
         input_rows = [row.to_model_input() for row in request.data]
-        rows = predict_rows(input_rows, optimization=request.optimization)
+        rows = pipeline.predict(input_rows).to_dict(orient="records")
         return [make_prediction_response(row) for row in rows]
 
     except (CustomException, ValueError, TypeError) as error:
