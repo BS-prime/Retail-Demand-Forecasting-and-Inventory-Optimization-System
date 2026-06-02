@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 import io
-import sys
 from typing import Any, List
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
@@ -21,7 +20,7 @@ async def lifespan(fastapi_app: FastAPI):
 
 app = FastAPI(
     title="Retail Demand Forecasting API",
-    description="Decoupled API serving production ML predictions and operations-research inventory optimizations.",
+    description="API serving production ML predictions and operations-research inventory optimizations.",
     version="0.2.0",
     lifespan=lifespan,
 )
@@ -30,7 +29,9 @@ app = FastAPI(
 def run_optimization_service(
     prediction_df: pd.DataFrame, opt_config: dict, horizon_days: int
 ) -> List[dict]:
-    """Helper to wire predictions through our decoupled InventoryService layer."""
+    """
+    Helper to wire predictions through our decoupled InventoryService layer.
+    """
     inventory_service = InventoryService(
         ordering_cost=opt_config["ordering_cost"],
         holding_cost=opt_config["holding_cost"],
