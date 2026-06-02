@@ -56,7 +56,7 @@ streamlit run src/ui/main.py
 Then open the browser page Streamlit provides to:
 - submit a single prediction
 - upload a CSV for batch prediction
-- optionally enable inventory optimization
+- configure mandatory inventory optimization parameters
 
 ### 4. Run the FastAPI service
 

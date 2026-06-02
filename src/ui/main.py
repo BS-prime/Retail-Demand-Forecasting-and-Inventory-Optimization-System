@@ -17,18 +17,12 @@ st.title("Retail Demand Forecasting — Inference & Optimization")
 
 with st.sidebar:
     st.header("Inventory Optimization")
-    enable_optimization = st.checkbox("Enable optimization", value=False)
-    ordering_cost = None
-    holding_cost = None
-    lead_time_days = None
-    safety_stock = 0.0
-    if enable_optimization:
-        ordering_cost = st.number_input("Ordering cost", value=50.0, min_value=0.0)
-        holding_cost = st.number_input(
-            "Holding cost (annual per unit)", value=2.0, min_value=0.0
-        )
-        lead_time_days = st.number_input("Lead time (days)", value=7, min_value=0)
-        safety_stock = st.number_input("Safety stock (units)", value=0, min_value=0)
+    ordering_cost = st.number_input("Ordering cost", value=50.0, min_value=0.1)
+    holding_cost = st.number_input(
+        "Holding cost (annual per unit)", value=2.0, min_value=0.1
+    )
+    lead_time_days = st.number_input("Lead time (days)", value=7, min_value=0)
+    safety_stock = st.number_input("Safety stock (units)", value=0.0, min_value=0.0)
 
 
 tab1, tab2 = st.tabs(["Single prediction", "Batch prediction"])
@@ -80,23 +74,22 @@ with tab1:
                 Epidemic=int(epidemic),
             )
 
-            pipeline = (
-                PredictPipeline(
-                    ordering_cost=ordering_cost,
-                    holding_cost=holding_cost,
-                    lead_time_days=lead_time_days,
-                    safety_stock=safety_stock,
-                    enable_optimization=bool(enable_optimization),
-                )
-                if enable_optimization
-                else PredictPipeline()
+            pipeline = PredictPipeline(
+                ordering_cost=ordering_cost,
+                holding_cost=holding_cost,
+                lead_time_days=lead_time_days,
+                safety_stock=safety_stock,
             )
 
             result = pipeline.predict([data.to_model_input()])
             st.success("Prediction completed")
             cols = st.columns(3)
-            cols[0].metric("Possible Demand", f"{result['PredictedDemand'].iloc[0]: .2f} units")
-            cols[1].metric("Order Quantity", f"{result['OptimalOrderQuantity'].iloc[0]: .2f} units")
+            cols[0].metric(
+                "Possible Demand", f"{result['PredictedDemand'].iloc[0]: .2f} units"
+            )
+            cols[1].metric(
+                "Order Quantity", f"{result['OptimalOrderQuantity'].iloc[0]: .2f} units"
+            )
             cols[2].metric("Order Threashold", f"{result['SafetyStock'].iloc[0]} units")
 
             st.download_button(
@@ -117,16 +110,11 @@ with tab2:
         try:
             df = pd.read_csv(uploaded)
 
-            pipeline = (
-                PredictPipeline(
-                    ordering_cost=ordering_cost,
-                    holding_cost=holding_cost,
-                    lead_time_days=lead_time_days,
-                    safety_stock=safety_stock,
-                    enable_optimization=bool(enable_optimization),
-                )
-                if enable_optimization
-                else PredictPipeline()
+            pipeline = PredictPipeline(
+                ordering_cost=ordering_cost,
+                holding_cost=holding_cost,
+                lead_time_days=lead_time_days,
+                safety_stock=safety_stock,
             )
 
             result = pipeline.predict(df)

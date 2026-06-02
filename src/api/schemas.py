@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Literal
-
 from pydantic import BaseModel, Field
 
 
@@ -63,22 +62,20 @@ class OptimizationInput(BaseModel):
     holding_cost: float = Field(gt=0)
     lead_time_days: int = Field(ge=0)
     safety_stock: float = Field(default=0, ge=0)
+    horizon_days: int = Field(
+        default=365,
+        gt=0,
+        description="The time horizon of the prediction data in days (e.g. 30 for monthly, 365 for annual)",
+    )
 
 
 class PredictionRequest(BaseModel):
     data: DemandData
-    optimization: OptimizationInput | None = None
-
-
-class BatchPredictionRequest(BaseModel):
-    data: list[DemandData] = Field(min_length=1)
-    optimization: OptimizationInput | None = None
+    optimization: OptimizationInput
 
 
 class PredictionResponse(BaseModel):
     predicted_demand: float
-    daily_demand: float | None = None
-    annual_demand: float | None = None
-    optimal_order_quantity: float | None = None
-    reorder_point: float | None = None
-    safety_stock: float | None = None
+    optimal_order_quantity: float
+    reorder_point: float
+    daily_demand: float
