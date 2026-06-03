@@ -30,7 +30,7 @@ class InventoryService:
         """
         output_df = prediction_df.copy()
 
-        # Step 1: Safely derive daily run-rates based on actual horizon length (fixes the 12x month bug)
+        # Step 1: Safely derive daily run-rates based on actual horizon length
         output_df["DailyDemand"] = output_df["PredictedDemand"] / days_in_horizon
 
         # Step 2: Scale up to annual specifically for the EOQ formula (since holding costs are annual)

@@ -30,7 +30,7 @@ def run_optimization_service(
     prediction_df: pd.DataFrame, opt_config: dict, horizon_days: int
 ) -> List[dict]:
     """
-    Helper to wire predictions through our decoupled InventoryService layer.
+    Helper to make inventory service calls more concise within the endpoint logic, while ensuring that the time horizon is safely handled across the board.
     """
     inventory_service = InventoryService(
         ordering_cost=opt_config["ordering_cost"],
